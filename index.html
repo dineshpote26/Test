@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1, minimum-scale=1">
+    <title></title>
+    <script>
+    var mobileOS; // will either be iOS, Android or unknown
+    var mobileOSver; // this is a string, use Number(mobileOSver) to convert
+    var id; // Id required for vod or Beats Song/Video
+    var type; // type required for vod or Beats Song/Video
+    var app; // please pass app Name as mentioned below in mediaApps
+    var referrer; // Referrer required for Clevertap for tracking purpose
+    //var appreferrer;
+    var timeout;
+    var action; // what action is required. Currently Update Feature added
+    var gclid;
+
+    var mediaApps = {
+        "beats": {
+            "iOS": {
+                "storepath": "https://itunes.apple.com/in/app/jiobeats/id1067842104?mt=8",
+                "apppath": "jiobeats://prod.media.jio.com/apis"
+            },
+            "Android": {
+                "storepath": "https://play.google.com/store/apps/details?id=com.jio.media.jiobeats",
+                "apppath": "jiobeats://prod.media.jio.com/apis"
+            }
+        },
+        "vod": {
+            "iOS": {
+                "storepath": "https://itunes.apple.com/in/app/jioondemand/id1067316596?mt=8",
+                "apppath": "jioondemand://"
+            },
+            "Android": {
+                "storepath": "https://play.google.com/store/apps/details?id=com.jio.media.ondemand&hl=en",
+                "apppath": "jioondemand://jiocinema/"
+            }
+        },
+
+        "xpressnews": {
+            "iOS": {
+                "storepath": "https://itunes.apple.com/in/app/jioxpressnews/id1067320076?mt=8",
+                "apppath": "jioxpressnews://"
+            },
+            "Android": {
+                "storepath": "https://play.google.com/store/apps/details?id=com.jio.media.jioxpressnews&ah=-mHMECz5URC7Onq5eyJUw49Uehk",
+                "apppath": "jioxpressnews://"
+            }
+        }
+
+    }
+
+    function getOS() {
+        var ua = navigator.userAgent;
+        var uaindex;
+
+        // determine OS
+        if (ua.match(/iPad/i) || ua.match(/iPhone/i)) {
+            mobileOS = 'iOS';
+            uaindex = ua.indexOf('OS ');
+        } else if (ua.match(/Android/i)) {
+            mobileOS = 'Android';
+            uaindex = ua.indexOf('Android ');
+        } else {
+            mobileOS = 'unknown';
+        }
+
+        // determine version
+        if (mobileOS === 'iOS' && uaindex > -1) {
+            mobileOSver = ua.substr(uaindex + 3, 3).replace('_', '.');
+        } else if (mobileOS === 'Android' && uaindex > -1) {
+            mobileOSver = ua.substr(uaindex + 8, 3);
+        } else {
+            mobileOSver = 'unknown';
+        }
+
+    }
+
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    function getIOSUrl(path){
+        var id = getParameterByName("id");
+                var type = getParameterByName("type");
+                var appMode = getParameterByName("appMode");
+                var isPlaylist = getParameterByName("isPlaylist");
+                var playlistId = getParameterByName("playlistId");
+                var latestId = getParameterByName("latestId");
+                var defaultAudioLanguage = getParameterByName("defaultAudioLanguage");
+                var selectedTab = getParameterByName("selectedTab");
+                var seeMore = getParameterByName("seeMore");
+                var layout = getParameterByName("layout");
+                var categoryName = getParameterByName("categoryName");
+                var isOriginal = getParameterByName("isOriginal");
+                var charCategory =  getParameterByName("charCategory");
+
+                var url = path.indexOf('?')>-1?(path+'&'):(path+'?');
+
+                if(appMode.length>0){
+                    url+='appMode:'+appMode+'&';
+                }
+                if(id.length>0){
+                    url+='id:'+id+'&';
+                }
+                if(type.length>0){
+                    url+='type:'+type+'&';
+                }
+                if(isPlaylist.length>0){
+                    url+='isPlaylist:'+isPlaylist+'&';
+                }
+                if(playlistId.length>0){
+                    url+='playlistId:'+playlistId+'&';
+                }
+                if(latestId.length>0){
+                    url+='latestId:'+latestId+'&';
+                }
+                if(defaultAudioLanguage.length>0){
+                    url+='defaultAudioLanguage:'+defaultAudioLanguage+'&';
+                }
+                if(selectedTab.length>0){
+                    url+='selectedTab:'+selectedTab+'&';
+                }
+                if(seeMore.length>0){
+                    url+='seeMore:'+seeMore+'&';
+                }
+                 if(layout.length>0){
+                    url+='layout:'+layout+'&';
+                }
+                if(categoryName.length>0){
+                    url+='categoryName:'+categoryName+'&';
+                }
+                if(isOriginal.length>0){
+                    url+='isOriginal:'+isOriginal+'&';
+                }
+                if(charCategory.length>0){
+                    url+='charCategory:'+charCategory;
+                }
+
+                return url;
+    }
+
+    function getAndroidUrl(path){
+                var id = getParameterByName("id");
+                var type = getParameterByName("type");
+                var appMode = getParameterByName("appMode");
+                var isPlaylist = getParameterByName("isPlaylist");
+                var playlistId = getParameterByName("playlistId");
+                var latestId = getParameterByName("latestId");
+                var defaultAudioLanguage = getParameterByName("defaultAudioLanguage");
+                var selectedTab = getParameterByName("selectedTab");
+                var seeMore = getParameterByName("seeMore");
+                var layout = getParameterByName("layout");
+                var categoryName = getParameterByName("categoryName");
+                var isOriginal = getParameterByName("isOriginal");
+                var charCategory =  getParameterByName("charCategory");
+           
+                var url = path.indexOf('?')>-1?(path+'&'):(path+'?');
+
+                if(appMode.length>0){
+                    url+='appMode='+appMode+'&';
+                }
+                if(id.length>0){
+                    url+='id='+id+'&';
+                }
+                if(type.length>0){
+                    url+='type='+type+'&';
+                }
+                if(isPlaylist.length>0){
+                    url+='isPlaylist='+isPlaylist+'&';
+                }
+                if(playlistId.length>0){
+                    url+='playlistId='+playlistId+'&';
+                }
+                if(latestId.length>0){
+                    url+='latestId='+latestId+'&';
+                }
+                if(defaultAudioLanguage.length>0){
+                    url+='defaultAudioLanguage='+defaultAudioLanguage+'&';
+                }
+                if(selectedTab.length>0){
+                    url+='selectedTab='+selectedTab+'&';
+                }
+                if(seeMore.length>0){
+                    url+='seeMore='+seeMore+'&';
+                }
+                 if(layout.length>0){
+                    url+='layout='+layout+'&';
+                }
+ 				if(categoryName.length>0){
+                    url+='categoryName='+categoryName+'&';
+                }
+                if(isOriginal.length>0){
+                    url+='isOriginal='+isOriginal+'&';
+                }
+                if(charCategory.length>0){
+                    url+='charCategory='+charCategory;
+                }
+                return url;
+            }
+
+    function redirectPage(location, parm) {
+        var path = '';
+        path = mediaApps[app][mobileOS][location] + parm;
+        //alert(path)
+        if(app!='vod'){
+            window.location.replace(path);    
+        }else{
+            if(location=='apppath'){
+                if(mobileOS=='Android'){
+                    path = getAndroidUrl(path);    
+                }else{
+                    path = getIOSUrl(path);  
+                }
+                
+                window.location.replace(path);;
+            }else{
+                window.location.replace(path);;
+            }
+        }
+        
+    }
+
+    function createParms(app, invoke) {
+        var parms = '';
+        if (invoke == "installedApp" && (app == 'beats' || app == "vod")) {
+            // parms = id ? "?id:" + id : '';
+            // parms += type ? "&type:" + type : '';
+            // parms += referrer ? "&referrer:" + referrer : '';
+            // parms += gclid ? "&gclid:" + gclid : '';
+        } else if (invoke == "store") {
+           // parms += referrer ? "&referrer=" + referrer : '';
+        }
+        return parms;
+    }
+
+    window.onload = function() {
+        getOS();
+
+        id = getParameterByName("id");
+        type = getParameterByName("type");
+
+        app = getParameterByName("app");
+        referrer = getParameterByName("referrer");
+        action = getParameterByName("action");
+        gclid = getParameterByName("gclid");
+
+        app = app ? app : 'vod';
+
+
+        if (action == 'update' || mobileOS == 'unknown') {
+
+            mobileOS = mobileOS == 'unknown' ? "Android" : mobileOS;
+            redirectPage("storepath", createParms(app, "store"))
+        } else {
+            timeout = setTimeout(function() {
+                redirectPage("storepath", createParms(app, "store"));
+            }, 3000);
+            
+            redirectPage("apppath", createParms(app, "installedApp"));
+        }
+
+    };
+
+    window.onblur = function() {
+
+        clearTimeout(timeout);
+        timeout = null;
+    }
+
+    document.addEventListener("visibilitychange", function() {
+
+        clearTimeout(timeout);
+        timeout = null;
+
+    })
+    </script>
+</head>
+
+<body></body>
+</html>
+
